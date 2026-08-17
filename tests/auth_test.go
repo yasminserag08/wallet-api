@@ -16,7 +16,7 @@ import (
 func TestSignUpSuccess(t *testing.T) {
 	testRepo := new(mocks.MockUserRepository)
 
-	testRepo.On("CreateUser", mock.AnythingOfType("User")).Return(models.User{ID: 1, Username: "yasmin", Role: "user"}, nil)
+	testRepo.On("CreateUserWithWallet", mock.AnythingOfType("User")).Return(models.User{ID: 1, Username: "yasmin", Role: "user"}, nil)
 
 	body := strings.NewReader(`{"username": "yasmin", "role":"user", "password":"test123"}`)
 	req := httptest.NewRequest("POST", "/signup", body)

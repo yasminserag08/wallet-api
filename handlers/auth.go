@@ -46,7 +46,7 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 		Role:     "user",
 	}
 
-	created, err := h.repo.CreateUser(user)
+	created, err := h.repo.CreateUserWithWallet(user)
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return

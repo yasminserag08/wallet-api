@@ -16,9 +16,21 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) CreateUser(user models.User) (models.User, error) {
-	result := r.db.Create(&user)
-	return user, result.Error
+func (r *UserRepository) CreateUserWithWallet(user models.User) (models.User, error) {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+
+		wallet := models.Wallet{UserID: user.ID, Balance: 0}
+		if err := tx.Create(&wallet).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return user, err
 }
 
 func (r *UserRepository) GetUserByUsername(username string) (models.User, error) {
