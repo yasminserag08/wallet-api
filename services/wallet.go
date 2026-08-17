@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"wallet-api/models"
 	"wallet-api/repositories"
 
@@ -78,4 +79,60 @@ func (s *WalletService) Withdraw(userID uint, amount int, category, note string)
 	})
 
 	return wallet, err
+}
+
+func (s *WalletService) Transfer(senderUserID uint, toUsername string, amount int, category, note string) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		sender, err := s.walletRepo.GetByUserIDForUpdate(tx, senderUserID)
+		if err != nil {
+			return err
+		}
+
+		if sender.Balance < amount {
+			return appErrors.ErrInsufficientFunds
+		}
+
+		receiver, err := s.userRepo.GetUserByUsername(toUsername)
+		if err != nil {
+			if errors.Is(err, appErrors.ErrNotFound) {
+				return appErrors.ErrUserNotFound
+			}
+			return err
+		}
+
+		receiverWallet, err := s.walletRepo.GetByUserIDForUpdate(tx, receiver.ID)
+		if err != nil {
+			return err
+		}
+
+		sender.Balance -= amount
+		if err := s.walletRepo.UpdateBalance(tx, sender.ID, sender.Balance); err != nil {
+			return err
+		}
+
+		receiverWallet.Balance += amount
+		if err := s.walletRepo.UpdateBalance(tx, receiverWallet.ID, receiverWallet.Balance); err != nil {
+			return err
+		}
+
+		if err := s.transactionRepo.Create(tx, models.Transaction{
+			WalletID:        sender.ID,
+			Type:            "transfer_out",
+			Amount:          amount,
+			Category:        category,
+			Note:            note,
+			RelatedWalletID: &receiverWallet.ID,
+		}); err != nil {
+			return err
+		}
+
+		return s.transactionRepo.Create(tx, models.Transaction{
+			WalletID:        receiverWallet.ID,
+			Type:            "transfer_in",
+			Amount:          amount,
+			Category:        category,
+			Note:            note,
+			RelatedWalletID: &sender.ID,
+		})
+	})
 }

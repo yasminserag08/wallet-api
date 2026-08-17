@@ -9,6 +9,6 @@ type Transaction struct {
 	Amount          int       `gorm:"not null" json:"amount"`
 	Category        string    `gorm:"not null" json:"category"`
 	Note            string    `gorm:"not null" json:"note"`
-	RelatedWalletID int       `json:"related_wallet_id,omitempty"`
+	RelatedWalletID *uint     `json:"related_wallet_id,omitempty"`
 	CreatedAt       time.Time `gorm:"autoCreateTime" json:"created_at"`
 }

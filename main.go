@@ -40,6 +40,7 @@ func main() {
 		protected.GET("", walletHandler.GetWallet)
 		protected.POST("/deposit", walletHandler.Deposit)
 		protected.POST("/withdraw", walletHandler.Withdraw)
+		protected.POST("/transfer", walletHandler.Transfer)
 	}
 
 	router.Run()

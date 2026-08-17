@@ -25,6 +25,13 @@ type depositWithdrawRequest struct {
 	Note     string `json:"note"`
 }
 
+type transferRequest struct {
+	ToUsername string `json:"toUsername" binding:"required"`
+	Amount     int    `json:"amount" binding:"required,gt=0"`
+	Category   string `json:"category" binding:"required"`
+	Note       string `json:"note"`
+}
+
 func (h *WalletHandler) GetWallet(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 
@@ -84,5 +91,26 @@ func (h *WalletHandler) Withdraw(c *gin.Context) {
 }
 
 func (h *WalletHandler) Transfer(c *gin.Context) {
-	// TODO
+	userID := c.MustGet("userID").(uint)
+
+	var req transferRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.walletService.Transfer(userID, req.ToUsername, req.Amount, req.Category, req.Note); err != nil {
+		if errors.Is(err, appErrors.ErrInsufficientFunds) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "insufficient funds"})
+			return
+		}
+		if errors.Is(err, appErrors.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "recipient not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "transfer successful"})
 }
