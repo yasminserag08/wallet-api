@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"wallet-api/handlers"
+	"wallet-api/repositories"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +22,11 @@ func main() {
 
 	router := gin.Default()
 
-	router.GET("/wallet/hello", func(c *gin.Context) { c.JSON(200, gin.H{"message": "hello"}) })
+	userRepo := repositories.NewUserRepository(db)
+	authHandler := handlers.NewAuthHandler(userRepo)
+
+	router.POST("/signup", authHandler.SignUp)
+	router.POST("/login", authHandler.LogIn)
 
 	router.Run()
 }
