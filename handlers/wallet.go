@@ -62,7 +62,25 @@ func (h *WalletHandler) Deposit(c *gin.Context) {
 }
 
 func (h *WalletHandler) Withdraw(c *gin.Context) {
-	// TODO
+	userID := c.MustGet("userID").(uint)
+
+	var req depositWithdrawRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	wallet, err := h.walletService.Withdraw(userID, req.Amount, req.Category, req.Note)
+	if errors.Is(err, appErrors.ErrInsufficientFunds) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "insufficient funds"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, wallet)
 }
 
 func (h *WalletHandler) Transfer(c *gin.Context) {
