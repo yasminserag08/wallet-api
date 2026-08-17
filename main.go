@@ -5,6 +5,7 @@ import (
 	"wallet-api/handlers"
 	"wallet-api/middleware"
 	"wallet-api/repositories"
+	"wallet-api/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,8 +26,10 @@ func main() {
 
 	userRepo := repositories.NewUserRepository(db)
 	walletRepo := repositories.NewWalletRepository(db)
+	transactionRepo := repositories.NewTransactionRepository(db)
 	authHandler := handlers.NewAuthHandler(userRepo)
-	walletHandler := handlers.NewWalletHandler(walletRepo)
+	walletService := services.NewWalletService(db, walletRepo, transactionRepo, userRepo)
+	walletHandler := handlers.NewWalletHandler(walletService)
 
 	router.POST("/signup", authHandler.SignUp)
 	router.POST("/login", authHandler.LogIn)
@@ -35,6 +38,7 @@ func main() {
 	protected.Use(middleware.RequireAuth())
 	{
 		protected.GET("", walletHandler.GetWallet)
+		protected.POST("/deposit", walletHandler.Deposit)
 	}
 
 	router.Run()

@@ -19,3 +19,7 @@ type WalletRepositoryInterface interface {
 	UpdateBalance(tx *gorm.DB, walletID uint, newBalance int) error
 	GetByUserIDForUpdate(tx *gorm.DB, userID uint) (models.Wallet, error)
 }
+
+type TransactionRepositoryInterface interface {
+	Create(tx *gorm.DB, transaction models.Transaction) error
+}
