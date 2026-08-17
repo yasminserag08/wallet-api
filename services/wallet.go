@@ -27,7 +27,7 @@ func (s *WalletService) Deposit(userID uint, amount int, category, note string) 
 
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		var err error
-		wallet, err := s.walletRepo.GetByUserIDForUpdate(tx, userID)
+		wallet, err = s.walletRepo.GetByUserIDForUpdate(tx, userID)
 		if err != nil {
 			return err
 		}
@@ -44,6 +44,5 @@ func (s *WalletService) Deposit(userID uint, amount int, category, note string) 
 			Note:     note,
 		})
 	})
-
 	return wallet, err
 }
