@@ -30,17 +30,24 @@ func main() {
 	authHandler := handlers.NewAuthHandler(userRepo)
 	walletService := services.NewWalletService(db, walletRepo, transactionRepo, userRepo)
 	walletHandler := handlers.NewWalletHandler(walletService)
+	transactionHandler := handlers.NewTransactionHandler(transactionRepo, walletRepo)
 
 	router.POST("/signup", authHandler.SignUp)
 	router.POST("/login", authHandler.LogIn)
 
-	protected := router.Group("/wallet")
-	protected.Use(middleware.RequireAuth())
+	wallet := router.Group("/wallet")
+	wallet.Use(middleware.RequireAuth())
 	{
-		protected.GET("", walletHandler.GetWallet)
-		protected.POST("/deposit", walletHandler.Deposit)
-		protected.POST("/withdraw", walletHandler.Withdraw)
-		protected.POST("/transfer", walletHandler.Transfer)
+		wallet.GET("", walletHandler.GetWallet)
+		wallet.POST("/deposit", walletHandler.Deposit)
+		wallet.POST("/withdraw", walletHandler.Withdraw)
+		wallet.POST("/transfer", walletHandler.Transfer)
+	}
+
+	transactions := router.Group("/transactions")
+	transactions.Use(middleware.RequireAuth())
+	{
+		transactions.GET("", transactionHandler.ListTransactions)
 	}
 
 	router.Run()
