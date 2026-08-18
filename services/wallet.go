@@ -60,8 +60,8 @@ func (s *WalletService) Withdraw(userID uint, amount int, category, note string)
 			return err
 		}
 
-		if wallet.Balance < amount {
-			return appErrors.ErrInsufficientFunds
+		if err := ValidateWithdraw(wallet.Balance, amount); err != nil {
+			return err
 		}
 
 		wallet.Balance -= amount
@@ -141,4 +141,11 @@ func (s *WalletService) Transfer(senderUserID uint, toUsername string, amount in
 			RelatedWalletID: &sender.ID,
 		})
 	})
+}
+
+func ValidateWithdraw(balance, amount int) error {
+	if balance < amount {
+		return appErrors.ErrInsufficientFunds
+	}
+	return nil
 }
