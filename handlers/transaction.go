@@ -33,6 +33,18 @@ func NewTransactionHandler(transactionRepo repositories.TransactionRepositoryInt
 // @Router       /transactions [get]
 func (h *TransactionHandler) ListTransactions(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
+	role := c.MustGet("role").(string)
+
+	if role == "admin" {
+		if queryID := c.Query("userID"); queryID != "" {
+			id, err := strconv.ParseUint(queryID, 10, 64)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid userID"})
+				return
+			}
+			userID = uint(id)
+		}
+	}
 
 	wallet, err := h.walletRepo.GetByUserID(userID)
 	if err != nil {

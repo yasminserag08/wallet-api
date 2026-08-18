@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"wallet-api/services"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,18 @@ type TransferRequest struct {
 // @Router       /wallet [get]
 func (h *WalletHandler) GetWallet(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
+	role := c.MustGet("role").(string)
+
+	if role == "admin" {
+		if queryID := c.Query("userID"); queryID != "" {
+			id, err := strconv.ParseUint(queryID, 10, 64)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid userID"})
+				return
+			}
+			userID = uint(id)
+		}
+	}
 
 	wallet, err := h.walletService.GetWallet(userID)
 
