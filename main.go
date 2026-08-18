@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"wallet-api/db"
 	"wallet-api/handlers"
 	"wallet-api/middleware"
 	"wallet-api/repositories"
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-	db, err := connect()
+	db, err := db.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"gorm.io/driver/postgres"
 )
 
-func connect() (*gorm.DB, error) {
+func Connect() (*gorm.DB, error) {
 	// in case there's no .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, using system environment variables")
