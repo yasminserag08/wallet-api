@@ -8,9 +8,22 @@ import (
 	"wallet-api/repositories"
 	"wallet-api/services"
 
+	_ "wallet-api/docs"
+
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title           Wallet API
+// @version         1.0
+// @description     A mini wallet and expense tracker API
+// @host            localhost:8080
+// @BasePath        /
+// @securityDefinitions.apikey BearerAuth
+// @in              header
+// @name            Authorization
+// @description     Type "Bearer" followed by a space and JWT token.
 func main() {
 	db, err := db.Connect()
 	if err != nil {
@@ -52,5 +65,6 @@ func main() {
 		transactions.GET("/summary", transactionHandler.GetSummary)
 	}
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run()
 }

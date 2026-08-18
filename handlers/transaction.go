@@ -18,6 +18,19 @@ func NewTransactionHandler(transactionRepo repositories.TransactionRepositoryInt
 	return &TransactionHandler{transactionRepo: transactionRepo, walletRepo: walletRepo}
 }
 
+// @Summary      List transactions
+// @Description  Get current user's transactions with optional filters
+// @Tags         transactions
+// @Produce      json
+// @Param        page      query  int     false  "Page number"
+// @Param        limit     query  int     false  "Page size"
+// @Param        category  query  string  false  "Filter by category"
+// @Param        from      query  string  false  "Filter from date (YYYY-MM-DD)"
+// @Param        to        query  string  false  "Filter to date (YYYY-MM-DD)"
+// @Success      200  {array}   models.Transaction
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /transactions [get]
 func (h *TransactionHandler) ListTransactions(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 
@@ -67,6 +80,14 @@ func (h *TransactionHandler) ListTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, transactions)
 }
 
+// @Summary      Transaction summary
+// @Description  Get totals grouped by category for the current month
+// @Tags         transactions
+// @Produce      json
+// @Success      200  {array}   repositories.CategorySummary
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /transactions/summary [get]
 func (h *TransactionHandler) GetSummary(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 

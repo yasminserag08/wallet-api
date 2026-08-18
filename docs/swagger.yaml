@@ -1,0 +1,370 @@
+basePath: /
+definitions:
+  handlers.AuthRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handlers.DepositWithdrawRequest:
+    properties:
+      amount:
+        description: greater than 0
+        type: integer
+      category:
+        type: string
+      note:
+        type: string
+    required:
+    - amount
+    - category
+    type: object
+  handlers.TransferRequest:
+    properties:
+      amount:
+        type: integer
+      category:
+        type: string
+      note:
+        type: string
+      toUsername:
+        type: string
+    required:
+    - amount
+    - category
+    - toUsername
+    type: object
+  models.Transaction:
+    properties:
+      amount:
+        type: integer
+      category:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      note:
+        type: string
+      related_wallet_id:
+        type: integer
+      type:
+        type: string
+      wallet_id:
+        type: integer
+    type: object
+  models.Wallet:
+    properties:
+      balance:
+        type: integer
+      id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  repositories.CategorySummary:
+    properties:
+      category:
+        type: string
+      total:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A mini wallet and expense tracker API
+  title: Wallet API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login and get a JWT token
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Log in
+      tags:
+      - auth
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Sign up request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AuthRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sign up
+      tags:
+      - auth
+  /transactions:
+    get:
+      description: Get current user's transactions with optional filters
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by category
+        in: query
+        name: category
+        type: string
+      - description: Filter from date (YYYY-MM-DD)
+        in: query
+        name: from
+        type: string
+      - description: Filter to date (YYYY-MM-DD)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Transaction'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List transactions
+      tags:
+      - transactions
+  /transactions/summary:
+    get:
+      description: Get totals grouped by category for the current month
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/repositories.CategorySummary'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Transaction summary
+      tags:
+      - transactions
+  /wallet:
+    get:
+      description: Get current user's wallet and balance
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Wallet'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get wallet
+      tags:
+      - wallet
+  /wallet/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit money into current user's wallet
+      parameters:
+      - description: Deposit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.DepositWithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Wallet'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deposit
+      tags:
+      - wallet
+  /wallet/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money to another user
+      parameters:
+      - description: Transfer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Transfer
+      tags:
+      - wallet
+  /wallet/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw money from current user's wallet
+      parameters:
+      - description: Withdraw request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.DepositWithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Wallet'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Withdraw
+      tags:
+      - wallet
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

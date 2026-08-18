@@ -19,19 +19,28 @@ func NewWalletHandler(walletService *services.WalletService) *WalletHandler {
 }
 
 // same structure used for both deposit and withdraw requests
-type depositWithdrawRequest struct {
+type DepositWithdrawRequest struct {
 	Amount   int    `json:"amount" binding:"required,gt=0"` // greater than 0
 	Category string `json:"category" binding:"required"`
 	Note     string `json:"note"`
 }
 
-type transferRequest struct {
+type TransferRequest struct {
 	ToUsername string `json:"toUsername" binding:"required"`
 	Amount     int    `json:"amount" binding:"required,gt=0"`
 	Category   string `json:"category" binding:"required"`
 	Note       string `json:"note"`
 }
 
+// @Summary      Get wallet
+// @Description  Get current user's wallet and balance
+// @Tags         wallet
+// @Produce      json
+// @Success      200  {object}  models.Wallet
+// @Failure      401  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /wallet [get]
 func (h *WalletHandler) GetWallet(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 
@@ -50,10 +59,21 @@ func (h *WalletHandler) GetWallet(c *gin.Context) {
 	c.JSON(http.StatusOK, wallet)
 }
 
+// @Summary      Deposit
+// @Description  Deposit money into current user's wallet
+// @Tags         wallet
+// @Accept       json
+// @Produce      json
+// @Param        request body DepositWithdrawRequest true "Deposit request"
+// @Success      200  {object}  models.Wallet
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /wallet/deposit [post]
 func (h *WalletHandler) Deposit(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 
-	var req depositWithdrawRequest
+	var req DepositWithdrawRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -68,10 +88,21 @@ func (h *WalletHandler) Deposit(c *gin.Context) {
 	c.JSON(http.StatusOK, wallet)
 }
 
+// @Summary      Withdraw
+// @Description  Withdraw money from current user's wallet
+// @Tags         wallet
+// @Accept       json
+// @Produce      json
+// @Param        request body DepositWithdrawRequest true "Withdraw request"
+// @Success      200  {object}  models.Wallet
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /wallet/withdraw [post]
 func (h *WalletHandler) Withdraw(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 
-	var req depositWithdrawRequest
+	var req DepositWithdrawRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -90,10 +121,22 @@ func (h *WalletHandler) Withdraw(c *gin.Context) {
 	c.JSON(http.StatusOK, wallet)
 }
 
+// @Summary      Transfer
+// @Description  Transfer money to another user
+// @Tags         wallet
+// @Accept       json
+// @Produce      json
+// @Param        request body TransferRequest true "Transfer request"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security     BearerAuth
+// @Router       /wallet/transfer [post]
 func (h *WalletHandler) Transfer(c *gin.Context) {
 	userID := c.MustGet("userID").(uint)
 
-	var req transferRequest
+	var req TransferRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

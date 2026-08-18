@@ -22,13 +22,23 @@ func NewAuthHandler(repo repositories.UserRepositoryInterface) *AuthHandler {
 }
 
 // used for both logins and signups
-type authRequest struct {
+type AuthRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
+// @Summary      Sign up
+// @Description  Create a new user account
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body AuthRequest true "Sign up request"
+// @Success      201  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Router       /signup [post]
 func (h *AuthHandler) SignUp(c *gin.Context) {
-	var req authRequest
+	var req AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -59,8 +69,18 @@ func (h *AuthHandler) SignUp(c *gin.Context) {
 	})
 }
 
+// @Summary      Log in
+// @Description  Login and get a JWT token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body AuthRequest true "Login request"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Router       /login [post]
 func (h *AuthHandler) LogIn(c *gin.Context) {
-	var req authRequest
+	var req AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
