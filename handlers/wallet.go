@@ -100,8 +100,8 @@ func (h *WalletHandler) Transfer(c *gin.Context) {
 	}
 
 	if err := h.walletService.Transfer(userID, req.ToUsername, req.Amount, req.Category, req.Note); err != nil {
-		if errors.Is(err, appErrors.ErrInsufficientFunds) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "insufficient funds"})
+		if errors.Is(err, appErrors.ErrInsufficientFunds) || errors.Is(err, appErrors.ErrSelfTransfer) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if errors.Is(err, appErrors.ErrUserNotFound) {

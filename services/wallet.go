@@ -82,6 +82,18 @@ func (s *WalletService) Withdraw(userID uint, amount int, category, note string)
 }
 
 func (s *WalletService) Transfer(senderUserID uint, toUsername string, amount int, category, note string) error {
+	// check if receiver and sender are the same
+	receiver, err := s.userRepo.GetUserByUsername(toUsername)
+	if err != nil {
+		if errors.Is(err, appErrors.ErrNotFound) {
+			return appErrors.ErrUserNotFound
+		}
+		return err
+	}
+	if receiver.ID == senderUserID {
+		return appErrors.ErrSelfTransfer
+	}
+
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		sender, err := s.walletRepo.GetByUserIDForUpdate(tx, senderUserID)
 		if err != nil {
@@ -93,12 +105,6 @@ func (s *WalletService) Transfer(senderUserID uint, toUsername string, amount in
 		}
 
 		receiver, err := s.userRepo.GetUserByUsername(toUsername)
-		if err != nil {
-			if errors.Is(err, appErrors.ErrNotFound) {
-				return appErrors.ErrUserNotFound
-			}
-			return err
-		}
 
 		receiverWallet, err := s.walletRepo.GetByUserIDForUpdate(tx, receiver.ID)
 		if err != nil {
