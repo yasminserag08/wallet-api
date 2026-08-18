@@ -23,4 +23,5 @@ type WalletRepositoryInterface interface {
 type TransactionRepositoryInterface interface {
 	Create(tx *gorm.DB, transaction models.Transaction) error
 	GetByWalletID(walletID uint, filter TransactionFilter) ([]models.Transaction, error)
+	GetSummary(walletID uint) ([]CategorySummary, error)
 }

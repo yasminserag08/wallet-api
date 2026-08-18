@@ -66,3 +66,21 @@ func (h *TransactionHandler) ListTransactions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, transactions)
 }
+
+func (h *TransactionHandler) GetSummary(c *gin.Context) {
+	userID := c.MustGet("userID").(uint)
+
+	wallet, err := h.walletRepo.GetByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "wallet not found"})
+		return
+	}
+
+	summary, err := h.transactionRepo.GetSummary(wallet.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, summary)
+}

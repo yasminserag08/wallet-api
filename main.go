@@ -48,6 +48,7 @@ func main() {
 	transactions.Use(middleware.RequireAuth())
 	{
 		transactions.GET("", transactionHandler.ListTransactions)
+		transactions.GET("/summary", transactionHandler.GetSummary)
 	}
 
 	router.Run()

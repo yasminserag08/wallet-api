@@ -50,3 +50,23 @@ func (r *TransactionRepository) GetByWalletID(walletID uint, filter TransactionF
 	result := query.Find(&transactions)
 	return transactions, result.Error
 }
+
+type CategorySummary struct {
+	Category string `json:"category"`
+	Total    int    `json:"total"`
+}
+
+func (r *TransactionRepository) GetSummary(walletID uint) ([]CategorySummary, error) {
+	var summary []CategorySummary
+
+	now := time.Now()
+	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+
+	result := r.db.Model(&models.Transaction{}).
+		Select("category, SUM(amount) as total").
+		Where("wallet_id = ? AND created_at >= ? AND type IN ?", walletID, startOfMonth, []string{"withdraw", "transfer_out"}).Group("category").
+		Scan(&summary)
+		// only show expenses (withdrawal/transfer out) in the summary
+
+	return summary, result.Error
+}
